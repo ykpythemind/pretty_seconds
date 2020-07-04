@@ -1,21 +1,18 @@
 module PrettySeconds
   class Converter
     def initialize(opts = {})
-      @truncate = opts.fetch(:truncate) { false } # WIP
-      @padding  = opts.fetch(:padding) { :except_first }.to_sym # WIP
-      validate_padding_config!(@padding)
+      @truncate_config    = (opts.fetch(:truncate) { :round } || :disabled).to_sym
+      @padding_config     = opts.fetch(:padding) { true } # WIP
+      @keep_zero_config   = (opts.fetch(:keep_zero) { :minute } || :disabled).to_sym
+      @nil_is_zero_config = true # WIP
 
-      @keep_zero = opts.fetch(:keep_zero) { :minute }.to_sym # WIP
-      @nil_is_zero = true
+      validate_config!
     end
-
-    MINUTE_SCALE = 60
-    HOUR_SCALE = 60 * 60
 
     def convert(number)
       targets = []
 
-      return if number.nil? && !@nil_is_zero
+      return if number.nil? && !nil_is_zero_config
 
       if number
         hour = (number / HOUR_SCALE).round
@@ -28,16 +25,24 @@ module PrettySeconds
         second = 0
       end
 
-      if hour != 0 || (hour == 0 && keep_zero_style?(:hour))
+      if hour != 0 || (hour == 0 && keep_zero?(:hour))
         targets << hour
       end
 
-      if min != 0 || (min == 0 && second == 0 && keep_zero_style?(:hour, :minute))
+      if min != 0 || (min == 0 && second == 0 && keep_zero?(:hour, :minute))
         targets << min
-      elsif min == 0 && second != 0 && keep_zero_style?(:hour, :minute)
+      elsif min == 0 && second != 0 && keep_zero?(:hour, :minute)
         targets << min
       else
-        targets << 0 if keep_zero_style?(:hour, :minute)
+        targets << 0 if keep_zero?(:hour, :minute)
+      end
+
+      if truncate_config == :round
+        second = second.round
+      elsif truncate_config == :floor
+        second = second.floor
+      else
+        second = second.round(2) # disable
       end
 
       targets << pad(second)
@@ -45,21 +50,36 @@ module PrettySeconds
       targets.join(':')
     end
 
+    attr_reader :truncate_config,
+                :padding_config,
+                :keep_zero_config,
+                :nil_is_zero_config
+
+    MINUTE_SCALE = 60
+    HOUR_SCALE = 60 * 60
+
     private
 
-    def keep_zero_style?(*styles)
-      styles.any? { |style| style == @keep_zero }
+    def keep_zero?(*styles)
+      styles.any? { |style| style == keep_zero_config }
     end
 
     def pad(num)
-      format("%02d", num)
+      return num if num >= 10
+
+      "0#{num}"
     end
 
-    PADDING_CONFIGS = [:pad_all, :except_first, :no_pad]
+    KEEP_ZERO_CONFIGS = [:hour, :minute, :disabled]
+    TRUNCATE_CONFIGS = [:round, :floor, :disabled]
 
-    def validate_padding_config!(sym)
-      unless PADDING_CONFIGS.include?(sym)
-        raise ArgumentError, "Padding config invalid: available paddings are #{PADDING_CONFIGS}"
+    def validate_config!
+      unless KEEP_ZERO_CONFIGS.include?(keep_zero_config)
+        raise ArgumentError, "Keep zero config invalid: available configs are #{KEEP_ZERO_CONFIGS}"
+      end
+
+      unless TRUNCATE_CONFIGS.include?(truncate_config)
+        raise ArgumentError, "Truncate config invalid: available configs are #{TRUNCATE_CONFIGS}"
       end
     end
   end
