@@ -36,7 +36,7 @@ class PrettySecondsTest < Minitest::Test
 
   def test_shorthand
     assert_equal "1:1:15", PrettySeconds.convert(3675)
-    assert_equal "0:24", PrettySeconds.convert(24, keep_zero: :minute)
+    assert_equal "0:0:24", PrettySeconds.convert(24, keep_zero: :hour)
   end
 
   private

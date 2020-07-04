@@ -1,9 +1,5 @@
 # PrettySeconds
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/pretty_seconds`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
-
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -22,7 +18,21 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Convert seconds to formatted style
+
+```ruby
+PrettySeconds.convert(110)
+=> "1:50"
+
+PrettySeconds.convert(9)
+=> "0:09"
+
+PrettySeconds.convert(602)
+=> "10:02"
+
+PrettySeconds.convert(3675)
+=> "1:1:15"
+```
 
 ## Development
 
@@ -32,7 +42,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/pretty_seconds.
+Bug reports and pull requests are welcome on GitHub at https://github.com/ykpythemind/pretty_seconds.
 
 
 ## License
